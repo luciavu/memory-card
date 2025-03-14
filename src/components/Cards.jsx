@@ -30,38 +30,22 @@ const CARDS = [
   'MushroomCow',
   'Cow',
   'Ocelot',
-  'Grass',
-  'Stone',
-  'Cobblestone',
-  'Bedrock',
-  'Pumpkin',
-  'OakLog',
-  'Melon',
-  'Cactus',
-  'Cake',
-  'Chest',
-  'Furnace',
-  'Bookshelf',
+  'Wolf',
+  'Strider',
 ];
 
-function Cards({ resetGame, setScore, score }) {
+function Cards({ gameOver, setGameOver, resetGame, setScore, score }) {
   const [selected, setSelected] = useState([]);
   const [cards, setCards] = useState([]);
+  const [imageCards, setImageCards] = useState([]);
 
-  console.log('selected:', selected);
-  async function shuffleCards() {
+  function shuffleCards() {
     const unselected = CARDS.filter((value) => {
       return !selected.includes(value);
     });
 
-    if (unselected.length === 0) {
-      console.log('All cards have been selected.');
-      return;
-    }
-
     // Atleast one new card should show.
     const newCard = unselected[Math.floor(Math.random() * unselected.length)];
-
     // Randomise 8 cards
     const randomCards = [];
     while (randomCards.length < 8) {
@@ -78,23 +62,37 @@ function Cards({ resetGame, setScore, score }) {
       newCard,
       ...randomCards.slice(position),
     ];
-
-    console.log(shuffledCards);
-    // Update cards
-    const imageCards = await Promise.all(
-      shuffledCards.map(async (card) => {
-        const imageUrl = await getImage(card);
-        return imageUrl;
-      })
-    );
-    setCards(imageCards);
+    setCards(shuffledCards);
   }
 
+  // Fetch images for each card
   useEffect(() => {
-    shuffleCards();
-  }, []);
+    const fetchImages = async () => {
+      try {
+        const imageCards = await Promise.all(
+          cards.map(async (card) => {
+            const imageUrl = await getImage(card);
+            return imageUrl;
+          })
+        );
+        setImageCards(imageCards);
+      } catch (error) {
+        console.error('Error fetching images', error);
+      }
+    };
+    fetchImages();
+  }, [cards]);
 
-  async function handleClick(card) {
+  useEffect(() => {
+    if (score === CARDS.length) {
+      setGameOver(true);
+      setSelected([]);
+      return;
+    }
+    shuffleCards();
+  }, [score, setGameOver]);
+
+  function handleClick(card) {
     const cardId = card.target.alt;
     if (selected.includes(cardId)) {
       resetGame();
@@ -103,15 +101,14 @@ function Cards({ resetGame, setScore, score }) {
       setScore(score + 1);
       setSelected((prevSelected) => [...prevSelected, cardId]);
     }
-    shuffleCards();
   }
 
   return (
     <>
       <div className="gameboard">
-        <div className="card-grid">
-          {cards
-            ? cards.map((card, index) => {
+        <div className={`card-grid ${gameOver ? 'inactive' : ''}`}>
+          {imageCards.length > 0
+            ? imageCards.map((card, index) => {
                 return <Card key={index} image={card} handleClick={handleClick} />;
               })
             : ''}

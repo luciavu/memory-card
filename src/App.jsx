@@ -6,17 +6,32 @@ import { useState } from 'react';
 function App() {
   const [score, setScore] = useState(0);
   const [highscore, setHighscore] = useState(0);
+  const [gameOver, setGameOver] = useState(false);
 
   const resetGame = () => {
-    setHighscore(score);
+    setGameOver(false);
+    if (score > highscore) {
+      setHighscore(score);
+    }
     setScore(0);
   };
 
   return (
     <>
       <div className="app-container">
-        <Header score={score} highscore={highscore}></Header>
-        <Cards resetGame={resetGame} setScore={setScore} score={score}></Cards>
+        <Header
+          gameOver={gameOver}
+          resetGame={resetGame}
+          score={score}
+          highscore={highscore}
+        ></Header>
+        <Cards
+          gameOver={gameOver}
+          setGameOver={setGameOver}
+          resetGame={resetGame}
+          setScore={setScore}
+          score={score}
+        ></Cards>
       </div>
     </>
   );

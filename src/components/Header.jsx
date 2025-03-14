@@ -1,4 +1,4 @@
-function Header({ score, highscore }) {
+function Header({ gameOver, resetGame, score, highscore }) {
   return (
     <>
       <div className="header">
@@ -16,8 +16,19 @@ function Header({ score, highscore }) {
       </div>
 
       <div className="description">
-        Avoid clicking on the same card. <br />
-        Best score is out of 40.
+        {gameOver ? (
+          <>
+            {'You win!'}
+            <br />
+            <button onClick={resetGame}>Play again?</button>
+          </>
+        ) : (
+          <>
+            {'Avoid clicking on the same card.'}
+            <br />
+            {'Reach 30 points to win.'}
+          </>
+        )}
       </div>
     </>
   );
