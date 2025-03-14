@@ -39,6 +39,18 @@ function Cards({ gameOver, setGameOver, resetGame, setScore, score }) {
   const [cards, setCards] = useState([]);
   const [imageCards, setImageCards] = useState([]);
 
+  // Pre-cache images on component mount
+  useEffect(() => {
+    const fetchImages = async () => {
+      await Promise.all(
+        CARDS.map(async (id) => {
+          await getImage(id);
+        })
+      );
+    };
+    fetchImages();
+  }, []);
+
   function shuffleCards() {
     const unselected = CARDS.filter((value) => {
       return !selected.includes(value);
