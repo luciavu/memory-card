@@ -38,17 +38,26 @@ function Cards({ gameOver, setGameOver, resetGame, setScore, score }) {
   const [selected, setSelected] = useState([]);
   const [cards, setCards] = useState([]);
   const [imageCards, setImageCards] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   // Pre-cache images on component mount
   useEffect(() => {
     const fetchImages = async () => {
-      await Promise.all(
-        CARDS.map(async (id) => {
-          await getImage(id);
-        })
-      );
+      try {
+        const images = await Promise.all(
+          CARDS.map(async (id) => {
+            const imageUrl = await getImage(id);
+            return { [id]: imageUrl };
+          })
+        );
+        const imageMap = Object.assign({}, ...images);
+        setImageCards(imageMap);
+      } catch (error) {
+        console.error('Error fetching images', error);
+      }
     };
     fetchImages();
+    setIsLoading(false);
   }, []);
 
   function shuffleCards() {
@@ -77,24 +86,6 @@ function Cards({ gameOver, setGameOver, resetGame, setScore, score }) {
     setCards(shuffledCards);
   }
 
-  // Fetch images for each card
-  useEffect(() => {
-    const fetchImages = async () => {
-      try {
-        const imageCards = await Promise.all(
-          cards.map(async (card) => {
-            const imageUrl = await getImage(card);
-            return imageUrl;
-          })
-        );
-        setImageCards(imageCards);
-      } catch (error) {
-        console.error('Error fetching images', error);
-      }
-    };
-    fetchImages();
-  }, [cards]);
-
   useEffect(() => {
     if (score === CARDS.length) {
       setGameOver(true);
@@ -119,11 +110,11 @@ function Cards({ gameOver, setGameOver, resetGame, setScore, score }) {
     <>
       <div className="gameboard">
         <div className={`card-grid ${gameOver ? 'inactive' : ''}`}>
-          {imageCards.length > 0
-            ? imageCards.map((card, index) => {
-                return <Card key={index} image={card} handleClick={handleClick} />;
+          {!isLoading
+            ? cards.map((card, index) => {
+                return <Card key={index} image={imageCards[card]} handleClick={handleClick} />;
               })
-            : ''}
+            : 'Loading...'}
         </div>
       </div>
     </>
